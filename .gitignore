@@ -1,0 +1,16 @@
+.env
+.env.*
+!.env.example
+.idea/
+.pytest_cache/
+.streamlit/secrets.toml
+.venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+outputs/
+test_crater/
+wangyiranCode/
+csfd_code/
+.superpowers/
+runtime_logs/

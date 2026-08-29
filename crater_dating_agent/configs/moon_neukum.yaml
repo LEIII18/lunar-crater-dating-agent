@@ -1,0 +1,22 @@
+schema_version: 1
+body: Moon
+chronology_system:
+  label: "Moon, Neukum (1983)"
+  cli: MoonNeukum1983
+epochs:
+  label: "Moon, Guo et al (2024)"
+  cli: MoonGuoetal2024
+equilibrium: null
+presentation: differential
+binning: pseudo-log
+fit:
+  type: b-poisson
+  symbol: fo
+overview:
+  name: "plot 2"
+  type: data
+  symbol: o
+formats:
+  - png
+  - csv
+

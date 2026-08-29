@@ -1,0 +1,5 @@
+,,,,,,,,,,,,,Formatted values
+,,,,,,,,,,,,,MathML
+Name,Area,Binning,d_min,d_max,Method,Resurf,N,N_event,Sort_order,Age,Age-,Age+,Source
+CRATER_TEST,10.7,pseudo-log,0.06,0.2,b-poisson,0,63,63,0,0.376,0.331,0.425,C:/fixture/CRATER_TEST.shp
+

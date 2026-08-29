@@ -1,0 +1,27 @@
+{
+  "candidates": [
+    {
+      "range_min_km": 0.061,
+      "range_max_km": 0.198,
+      "confidence": "high",
+      "reason": "连续分箱趋势稳定",
+      "risks": ["小直径端需要人工检查完整性"]
+    },
+    {
+      "range_min_km": 0.06,
+      "range_max_km": 0.2,
+      "confidence": "medium",
+      "reason": "与第一个候选对齐到相同边界",
+      "risks": []
+    },
+    {
+      "range_min_km": 0.4,
+      "range_max_km": 0.5,
+      "confidence": "low",
+      "reason": "超出数据范围的测试候选",
+      "risks": ["统计不足"]
+    }
+  ],
+  "overall_observation": "主要连续段位于 0.06–0.2 km。",
+  "needs_human_review": true
+}

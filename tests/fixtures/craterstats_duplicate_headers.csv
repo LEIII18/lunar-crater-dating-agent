@@ -1,0 +1,5 @@
+,,,,,,,,,,,,,,,,,,,,Formatted values
+,,,,,,,,,,,,,,,,,,,,,MathML,,Latex,
+Name,Area,Binning,d_min,d_max,Method,Resurf,N,N_event,Age,Age-,Age+,a0,a0-,a0+,N(1),N(1)-,N(1)+,Source, ,Range,Age,N(1),Age,N(1)
+CRATER_TEST,10.7,pseudo-log,0.06,0.2,b-poisson,0,63,63,0.376,0.331,0.425,-3.5,-3.6,-3.4,1e-4,9e-5,2e-4,C:/fixture/CRATER_TEST.shp, ,60-200 m,<math>formatted age</math>,<math>formatted density</math>,$formatted age$,$formatted density$
+

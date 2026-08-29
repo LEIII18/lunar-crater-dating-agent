@@ -1,0 +1,8 @@
+schema_version: 1
+default_model: deepseek-v4-flash-vision-exp
+default_base_url: https://api.deepseek.com
+min_event_count: 20
+min_occupied_bins: 3
+proposal_repair_attempts: 1
+api_timeout_seconds: 90
+api_max_retries: 1
