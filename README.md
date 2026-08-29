@@ -40,6 +40,38 @@ CRATER_MODEL_DIR=<项目目录>\wangyiranCode
 
 页面“高级设置”允许按本机实际位置修改这些路径。两个已经验证的识别核心脚本保持原有算法和接口，由薄编排层通过安全子进程参数调用。
 
+## 外部依赖：首次安装
+
+本仓库只发布本项目的编排、界面和定年工作流代码；**不包含**撞击坑自动识别模型、模型权重或 CraterstatsGUI 源码。克隆后请按以下步骤完成本机配置。
+
+1. 下载 [CraterstatsGUI](https://github.com/ggmichael/craterstatsGUI)（建议固定记录所用版本）。本项目使用其 Craterstats 能力生成 CSFD 图和定年结果；可通过 `craterstats==3.6.7` Python 包运行定年核心，或按该项目文档配置本地软件。
+2. 从原始发布渠道获取撞击坑自动识别工具及其模型权重，并放在本机受控目录，例如：
+
+   ```text
+   <本机工具目录>/wangyiranCode/
+   ```
+
+   在页面“高级设置”中将 `CRATER_MODEL_DIR` 指向该目录，并设置对应的 `CRATER_MODEL_PYTHON` 解释器。不要将模型代码、权重或数据文件提交到本项目仓库，除非原始许可证明确允许再分发。
+3. 按实际情况安装 ArcGIS 10.8 / ArcPy，并在页面中设置 `ARCPY_PYTHON`。自动识别流程当前依赖该本机环境。
+
+推荐的本机目录关系如下（外部目录名称可不同）：
+
+```text
+agent_build/                         # 本仓库
+├─ crater_dating_agent/              # 本项目代码
+└─ .venv/                            # 本项目 Python 环境
+
+<本机工具目录>/
+├─ wangyiranCode/                    # 用户从原始渠道获取；不提交到本仓库
+└─ craterstatsGUI/                   # 用户从官方仓库获取；不提交到本仓库
+```
+
+### 自动识别模型引用
+
+> Wang, Yiran, Miao Zhuo, and Xiaoran Zhang. 2025. *Automatic Crater Detection Tool for Moon, Mars, and Mercury* (V11) [Data set]. Science Data Bank. CSTR: 31253.11.sciencedb.11985. https://cstr.cn/31253.11.sciencedb.11985
+
+更完整的第三方软件和数据说明见 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)。
+
 ## 工作流
 
 1. 校验输入并创建独立任务副本；
@@ -60,7 +92,7 @@ CRATER_MODEL_DIR=<项目目录>\wangyiranCode
 
 ## 发布边界
 
-`outputs/`、测试数据、虚拟环境、本机 IDE 配置、`wangyiranCode/` 模型代码与权重、以及本地下载的 `csfd_code/` 均已列入 `.gitignore`。本地 Craterstats GUI 源码带 BSD-3-Clause 许可证；当前撞击坑识别模型目录没有附带许可证，因此在权利状态明确前不得上传到 GitHub。项目通过 PyPI 的 `craterstats==3.6.7` 运行定年核心。
+`outputs/`、测试数据、虚拟环境、本机 IDE 配置、`wangyiranCode/` 模型代码与权重、以及本地下载的 `csfd_code/` 均已列入 `.gitignore`。本地 Craterstats GUI 源码带 BSD-3-Clause 许可证；当前撞击坑识别模型目录没有附带许可证，因此在权利状态明确前不得上传到 GitHub。项目通过 PyPI 的 `craterstats==3.6.7` 运行定年核心。第三方依赖的引用、许可证和再发布边界见 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)。
 
 ## English quick start
 

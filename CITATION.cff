@@ -1,0 +1,15 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+title: "Lunar Crater Intelligent Dating System"
+type: software
+authors:
+  - family-names: Lei
+    given-names: Danhong
+repository-code: "https://github.com/LEIII18/lunar-crater-dating-agent"
+abstract: "A local Streamlit workflow for lunar crater detection review, Craterstats CSFD dating, and human-confirmed fitting-range recommendation."
+keywords:
+  - lunar craters
+  - crater size-frequency distribution
+  - crater dating
+  - Craterstats
+  - Streamlit
