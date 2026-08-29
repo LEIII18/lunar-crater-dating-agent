@@ -10,36 +10,41 @@
 
 AREA 与 CRATER 的编号必须完全相同，且 Shapefile 目录中必须包含 `.shp`、`.shx`、`.dbf` 和 `.prj`。空 CRATER 会调用撞击坑自动识别模型；有坑的 CRATER 会跳过识别并直接进入定年。
 
-## 在 PyCharm 中运行
+## 安装与运行（PyCharm）
 
-1. 打开项目目录：`E:\DiHuaSuo\2026\paper\csfd_agent\agent_build`。
-2. 选择项目解释器：`E:\DiHuaSuo\2026\paper\csfd_agent\agent_build\.venv\Scripts\python.exe`。
+以下用 `<项目目录>` 表示你克隆本仓库后的本地目录，不要直接照抄其他人的绝对路径。
+
+1. 在 PyCharm 中打开 `<项目目录>`，并使用 Python 3.12 或更高版本创建或选择项目虚拟环境 `.venv`。
+2. 在 PyCharm Terminal 中安装项目依赖：
+
+   ```powershell
+   .\.venv\Scripts\python.exe -m pip install -e .
+   ```
+
 3. 新建 **Python** Run/Debug Configuration：
-   - Script path：`E:\DiHuaSuo\2026\paper\csfd_agent\agent_build\.venv\Scripts\streamlit.exe`
+   - Script path：`<项目目录>\.venv\Scripts\streamlit.exe`
    - Parameters：`run streamlit_app.py`
-   - Working directory：`E:\DiHuaSuo\2026\paper\csfd_agent\agent_build`
+   - Working directory：`<项目目录>`
+   - Environment variables：按本机实际安装位置填写下面的变量。
+
+   ```text
+   ARCPY_PYTHON=<ArcGIS 10.8 / ArcPy Python 2.7 的 python.exe 绝对路径>
+   CRATER_MODEL_PYTHON=<撞击坑自动识别模型 Python 环境的 python.exe 绝对路径>
+   CRATER_MODEL_DIR=<crater_detect_model 目录的绝对路径>
+   DEEPSEEK_API_KEY=<可选；建议在此配置，而不要写入代码或提交到 Git>
+   ```
+
+   启动时，网页“高级设置”会自动读取前三项环境变量并作为默认值显示，因此无需每次重复输入。若未配置 `DEEPSEEK_API_KEY`，页面仍可临时输入；该值只保存在当前 Streamlit 进程内存。
+
 4. 运行后打开 `http://localhost:8501`。
 
-也可以在 PyCharm Terminal 中运行：
+也可在已设置上述环境变量的终端中运行：
 
 ```powershell
 .\.venv\Scripts\python.exe -m streamlit run streamlit_app.py
 ```
 
-DeepSeek 密钥优先读取环境变量 `DEEPSEEK_API_KEY`。如果没有设置，页面会显示密码输入框；输入值只保存在当前 Streamlit 进程内存，不写入状态、日志或配置文件。
-
-## 本机运行环境
-
-默认配置为：
-
-```text
-ARCPY_PYTHON=C:\Python27\ArcGIS10.8\python.exe
-CRATER_MODEL_PYTHON=C:\ProgramData\Anaconda3\envs\crater_model_py39\python.exe
-CRATER_MODEL_DIR=<项目目录>\crater_detect_model
-```
-
-页面“高级设置”允许按本机实际位置修改这些路径。两个已经验证的识别核心脚本保持原有算法和接口，由薄编排层通过安全子进程参数调用。
-
+> `.env.example` 仅是配置模板；项目不会自动读取 `.env` 文件。若使用该模板，请将实际值配置到 PyCharm 的 **Environment variables** 或操作系统环境变量中。
 ## 外部依赖：首次安装
 
 本仓库只发布本项目的编排、界面和定年工作流代码；**不包含**撞击坑自动识别模型、模型权重或 CraterstatsGUI 源码。克隆后请按以下步骤完成本机配置。
