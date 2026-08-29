@@ -348,6 +348,7 @@ def render_app() -> None:
     cols[2].write(f"**{tr('task_dir', language)}**\n\n{state.workspace.root}")
     if state.phase is WorkflowPhase.DETECTION_READY:
         st.info(tr("empty_crater_route", language))
+        st.warning(tr("detection_interruption_warning", language))
         if st.button(tr("start_detection", language), type="primary"):
             lines: list[str] = []
             log = st.empty()

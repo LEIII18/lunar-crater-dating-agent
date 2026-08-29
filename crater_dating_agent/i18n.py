@@ -63,6 +63,9 @@ _MESSAGES: dict[Language, dict[str, str]] = {
         "completed": "定年已完成。",
         "area_legend": "AREA_{case_id} 定年区域",
         "empty_crater_route": "CRATER 为空，将调用撞击坑自动识别模型",
+        "detection_interruption_warning": (
+            "自动识别运行期间，请勿切换语言、刷新页面或关闭此浏览器标签。"
+        ),
         "session_phase": "当前会话状态",
         "analysis_interrupted": "上次 DeepSeek 分析被中断，可恢复到分析前并重新调用。",
         "session_failed": "当前会话失败；如已有可用阶段产物，可以恢复后继续。",
@@ -124,6 +127,10 @@ _MESSAGES: dict[Language, dict[str, str]] = {
         "area_legend": "AREA_{case_id} dating area",
         "empty_crater_route": (
             "CRATER is empty; the automatic crater detection model will run"
+        ),
+        "detection_interruption_warning": (
+            "While automatic detection is running, do not change language, refresh "
+            "the page, or close this browser tab."
         ),
         "session_phase": "Current session phase",
         "analysis_interrupted": (

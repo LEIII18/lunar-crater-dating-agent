@@ -4,6 +4,7 @@ from pathlib import Path
 
 from streamlit.testing.v1 import AppTest
 
+from crater_dating_agent.i18n import Language, tr
 from crater_dating_agent.web_app import parse_local_path
 
 
@@ -43,3 +44,13 @@ def test_language_switch_changes_fixed_ui_without_changing_path_values() -> None
     assert app.title[0].value == "Lunar Crater Intelligent Dating System"
     assert app.text_input[0].value == r"E:\data\AREA_Saussure_D.shp"
     assert any(button.label == "Validate inputs and create task" for button in app.button)
+
+
+def test_detection_interruption_warning_is_available_in_both_languages() -> None:
+    assert tr("detection_interruption_warning", Language.ZH) == (
+        "自动识别运行期间，请勿切换语言、刷新页面或关闭此浏览器标签。"
+    )
+    assert tr("detection_interruption_warning", Language.EN) == (
+        "While automatic detection is running, do not change language, refresh "
+        "the page, or close this browser tab."
+    )
