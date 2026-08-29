@@ -35,7 +35,7 @@ DeepSeek 密钥优先读取环境变量 `DEEPSEEK_API_KEY`。如果没有设置�
 ```text
 ARCPY_PYTHON=C:\Python27\ArcGIS10.8\python.exe
 CRATER_MODEL_PYTHON=C:\ProgramData\Anaconda3\envs\crater_model_py39\python.exe
-CRATER_MODEL_DIR=<项目目录>\wangyiranCode
+CRATER_MODEL_DIR=<项目目录>\crater_detect_model
 ```
 
 页面“高级设置”允许按本机实际位置修改这些路径。两个已经验证的识别核心脚本保持原有算法和接口，由薄编排层通过安全子进程参数调用。
@@ -48,7 +48,7 @@ CRATER_MODEL_DIR=<项目目录>\wangyiranCode
 2. 从原始发布渠道获取撞击坑自动识别工具及其模型权重，并放在本机受控目录，例如：
 
    ```text
-   <本机工具目录>/wangyiranCode/
+   <本机工具目录>/crater_detect_model/
    ```
 
    在页面“高级设置”中将 `CRATER_MODEL_DIR` 指向该目录，并设置对应的 `CRATER_MODEL_PYTHON` 解释器。不要将模型代码、权重或数据文件提交到本项目仓库，除非原始许可证明确允许再分发。
@@ -62,7 +62,7 @@ agent_build/                         # 本仓库
 └─ .venv/                            # 本项目 Python 环境
 
 <本机工具目录>/
-├─ wangyiranCode/                    # 用户从原始渠道获取；不提交到本仓库
+├─ crater_detect_model/                    # 用户从原始渠道获取；不提交到本仓库
 └─ craterstatsGUI/                   # 用户从官方仓库获取；不提交到本仓库
 ```
 
@@ -92,7 +92,7 @@ agent_build/                         # 本仓库
 
 ## 发布边界
 
-`outputs/`、测试数据、虚拟环境、本机 IDE 配置、`wangyiranCode/` 模型代码与权重、以及本地下载的 `csfd_code/` 均已列入 `.gitignore`。本地 Craterstats GUI 源码带 BSD-3-Clause 许可证；当前撞击坑识别模型目录没有附带许可证，因此在权利状态明确前不得上传到 GitHub。项目通过 PyPI 的 `craterstats==3.6.7` 运行定年核心。第三方依赖的引用、许可证和再发布边界见 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)。
+`outputs/`、测试数据、虚拟环境、本机 IDE 配置、`crater_detect_model/` 模型代码与权重、以及本地下载的 `csfd_code/` 均已列入 `.gitignore`。本地 Craterstats GUI 源码带 BSD-3-Clause 许可证；当前撞击坑识别模型目录没有附带许可证，因此在权利状态明确前不得上传到 GitHub。项目通过 PyPI 的 `craterstats==3.6.7` 运行定年核心。第三方依赖的引用、许可证和再发布边界见 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)。
 
 ## English quick start
 

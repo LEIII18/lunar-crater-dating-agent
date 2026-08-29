@@ -17,7 +17,7 @@ DEFAULT_ARCPY_PYTHON = Path(r"C:\Python27\ArcGIS10.8\python.exe")
 DEFAULT_MODEL_PYTHON = Path(
     r"C:\ProgramData\Anaconda3\envs\crater_model_py39\python.exe"
 )
-DEFAULT_MODEL_DIR = PROJECT_ROOT / "wangyiranCode"
+DEFAULT_MODEL_DIR = PROJECT_ROOT / "crater_detect_model"
 DEFAULT_PIPELINE_SCRIPT = PROJECT_ROOT / "part1_code" / "auto_crater_detection_pipeline.py"
 
 

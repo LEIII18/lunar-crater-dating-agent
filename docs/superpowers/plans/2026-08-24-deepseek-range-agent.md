@@ -14,7 +14,7 @@
 
 - Preserve the behavior and arguments of `python -m crater_dating_agent`.
 - Add the interactive entry as `python -m crater_dating_agent.agent_main`.
-- Do not modify `wangyiranCode/`, `csfd_code/`, or crater-detection behavior.
+- Do not modify `crater_detect_model/`, `csfd_code/`, or crater-detection behavior.
 - First-stage global configuration has exactly one `type=data` pseudo-log overplot with `name=plot 2`, `psym=o`, and no `range` or age fit.
 - PNG files are visible to the user but are never sent to DeepSeek in this phase.
 - Structured bins must come from Craterstats 3.6.7 `Cratercount`/`Spatialcount`, not a duplicated binning implementation.
@@ -493,7 +493,7 @@ rg -n "sk-[A-Za-z0-9]{10,}|DEEPSEEK_API_KEY\s*=" . -g '!\.venv/**' -g '!outputs/
 rg -n "base64|image_url|data:image" crater_dating_agent tests
 ```
 
-Expected: no embedded API key and no code that uploads the PNG. Confirm `wangyiranCode/` and `csfd_code/` were not modified.
+Expected: no embedded API key and no code that uploads the PNG. Confirm `crater_detect_model/` and `csfd_code/` were not modified.
 
 - [ ] **Step 6: Optional live DeepSeek smoke test only after explicit user authorization**
 

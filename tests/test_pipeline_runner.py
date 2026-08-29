@@ -13,12 +13,16 @@ from pyproj import CRS
 from crater_dating_agent.models import DatingError
 from crater_dating_agent.pipeline_runner import (
     DetectionSettings,
+    DEFAULT_MODEL_DIR,
     build_detection_argv,
     run_detection,
 )
 from crater_dating_agent.workflow_inputs import validate_workflow_inputs
 from crater_dating_agent.workflow_workspace import create_workflow_workspace
 
+
+def test_default_model_dir_uses_neutral_directory_name() -> None:
+    assert DEFAULT_MODEL_DIR.name == "crater_detect_model"
 
 def _workspace(tmp_path: Path):
     source = tmp_path / "source"
@@ -51,7 +55,7 @@ def _workspace(tmp_path: Path):
 def _settings(tmp_path: Path) -> DetectionSettings:
     arcpy_python = tmp_path / "ArcGIS" / "python.exe"
     model_python = tmp_path / "model-env" / "python.exe"
-    model_dir = tmp_path / "wangyiranCode"
+    model_dir = tmp_path / "crater_detect_model"
     weight = model_dir / "model_data" / "moon" / "weights" / "moon.onnx"
     arcpy_python.parent.mkdir()
     model_python.parent.mkdir()

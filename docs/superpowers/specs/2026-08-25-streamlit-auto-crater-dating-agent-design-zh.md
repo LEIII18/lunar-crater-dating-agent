@@ -16,10 +16,10 @@
 
 ## 2. 核心约束
 
-- `part1_code/auto_crater_detection_pipeline.py` 和 `part1_code/run_wangyiran_model_py3.py` 已经过实际验证，视为稳定核心，不重构识别、投影、字段转换或写入算法。
+- `part1_code/auto_crater_detection_pipeline.py` 和 `part1_code/run_crater_detection_model_py3.py` 已经过实际验证，视为稳定核心，不重构识别、投影、字段转换或写入算法。
 - 新功能采用薄编排层，通过参数列表形式的子进程调用既有脚本。
 - 第一版继续依赖 ArcGIS 10.8 ArcPy/Python 2.7。
-- `wangyiranCode` 中的 ONNX 撞击坑自动识别模型继续使用独立 Python 3.9 环境运行。
+- `crater_detect_model` 中的 ONNX 撞击坑自动识别模型继续使用独立 Python 3.9 环境运行。
 - Streamlit 和现有定年智能体运行在项目 `.venv` 中。
 - 不修改用户原始 AREA、CRATER 或 TIFF。
 - AREA 文件名必须以 `AREA_` 开头，CRATER 文件名必须以 `CRATER_` 开头；两个前缀后的完整任务编号必须严格一致，例如 `AREA_SID9.shp` 对应 `CRATER_SID9.shp`，不能增加 `_AUTO` 等后缀。
@@ -40,7 +40,7 @@ Streamlit 本地界面（项目 .venv）
   |     `-- 空：ArcPy Python 2.7
   |           `-- auto_crater_detection_pipeline.py
   |                  `-- 模型 Python 3.9
-  |                        `-- run_wangyiran_model_py3.py
+  |                        `-- run_crater_detection_model_py3.py
   |
   +-- TIFF + AREA + CRATER 降采样叠加预览
   |     |-- 满意：使用自动结果
@@ -179,7 +179,7 @@ AREA 和 CRATER 的现有配套文件复制到 `source_copy`。空 CRATER 路径
 ```text
 ARCPY_PYTHON=C:\Python27\ArcGIS10.8\python.exe
 CRATER_MODEL_PYTHON=C:\ProgramData\Anaconda3\envs\crater_model_py39\python.exe
-CRATER_MODEL_DIR=E:\DiHuaSuo\2026\paper\csfd_agent\agent_build\wangyiranCode
+CRATER_MODEL_DIR=E:\DiHuaSuo\2026\paper\csfd_agent\agent_build\crater_detect_model
 ```
 
 DeepSeek 配置规则：
@@ -255,7 +255,7 @@ Git 整理和 GitHub 发布只在功能、真实测试和文档全部确认后�
 
 最终建立私有 GitHub 仓库。提交前：
 
-- 检查第三方 Craterstats 与 `wangyiranCode` 许可证；
+- 检查第三方 Craterstats 与 `crater_detect_model` 许可证；
 - 不提交 API 密钥、`.env`、`outputs`、缓存、测试数据和本机配置；
 - ONNX 权重默认不提交，在 README 说明本地目录结构；
 - 移除或配置化需要发布的本机绝对路径；

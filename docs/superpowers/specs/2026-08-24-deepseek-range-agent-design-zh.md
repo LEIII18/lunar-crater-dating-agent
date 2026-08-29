@@ -40,7 +40,7 @@ python -m crater_dating_agent
 - 全局数据图层：`name=plot 2,type=data,psym=o`，不设置 range；
 - 平衡函数：None。
 
-本阶段不修改 `wangyiranCode/`、`csfd_code/` 和现有撞击坑检测行为。
+本阶段不修改 `crater_detect_model/`、`csfd_code/` 和现有撞击坑检测行为。
 
 ## 三、总体架构
 
@@ -402,4 +402,3 @@ range 和无 range `plot 2` 的最终结果。
   https://api-docs.deepseek.com/guides/tool_calls/
 - Thinking Mode：
   https://api-docs.deepseek.com/guides/thinking_mode/
-

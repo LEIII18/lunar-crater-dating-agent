@@ -6,7 +6,7 @@ This main script is intended to run with:
     C:\\Python27\\ArcGIS10.8\\python.exe
 
 Because the neural-network model was written for Python 3, this script calls
-tools/run_wangyiran_model_py3.py in a separate Python 3 process for detection.
+tools/run_crater_detection_model_py3.py in a separate Python 3 process for detection.
 ArcPy stays in Python 2.7 and handles clipping, projection definition, and
 appending the detected craters into the target CRATER shapefile.
 """
@@ -37,7 +37,7 @@ if sys.version_info[0] < 3:
 DEFAULT_AREA_SHP = u"G:\\地化所\\2026\\文章\\撞击坑分类\\4. 几个数据集年代标签对比\\定年\\data\\crater_classify_paper\\date\\35\\date\\AREA_Saussure_D.shp"
 DEFAULT_IMAGE_TIF = u"G:\\地化所\\2026\\文章\\撞击坑分类\\4. 几个数据集年代标签对比\\定年\\data\\crater_classify_paper\\date\\35\\8mdom\\0_15E47_01S.tif"
 DEFAULT_TARGET_SHP = u"G:\\地化所\\2026\\文章\\撞击坑分类\\4. 几个数据集年代标签对比\\定年\\data\\crater_classify_paper\\date\\35\\date\\CRATER_Saussure_D.shp"
-DEFAULT_MODEL_DIR = u"E:\\DiHuaSuo\\2026\\paper\\csfd_agent\\agent_build\\wangyiranCode"
+DEFAULT_MODEL_DIR = u"E:\\DiHuaSuo\\2026\\paper\\csfd_agent\\agent_build\\crater_detect_model"
 
 SHAPEFILE_SUFFIXES = [".shp", ".shx", ".dbf", ".prj", ".cpg", ".sbn", ".sbx", ".qix", ".xml"]
 
@@ -58,7 +58,7 @@ def parse_args():
     parser.add_argument("--area-shp", default=DEFAULT_AREA_SHP, help="AREA crater mask shapefile.")
     parser.add_argument("--image-tif", default=DEFAULT_IMAGE_TIF, help="Input remote sensing GeoTIFF.")
     parser.add_argument("--target-shp", default=DEFAULT_TARGET_SHP, help="Target CRATER shapefile to append into.")
-    parser.add_argument("--model-dir", default=DEFAULT_MODEL_DIR, help="wangyiranCode folder.")
+    parser.add_argument("--model-dir", default=DEFAULT_MODEL_DIR, help="crater_detect_model folder.")
     parser.add_argument(
         "--model-python",
         default=default_model_python(),
@@ -215,7 +215,7 @@ def clip_raster_by_mask(input_raster, area_shp, out_dir, overwrite):
 
 
 def run_model_python3(model_python, model_dir, clipped_tif, output_dir, overwrite):
-    helper = os.path.join(here(), "run_wangyiran_model_py3.py")
+    helper = os.path.join(here(), "run_crater_detection_model_py3.py")
     require_path(helper, "Python 3 model helper")
     require_path(model_dir, "Model folder")
     ensure_dir(output_dir)
@@ -424,7 +424,7 @@ def append_detected_to_target(detected_shp, target_shp, tile_origin, tag_value, 
 
 
 def check_model_python(model_python, model_dir):
-    helper = os.path.join(here(), "run_wangyiran_model_py3.py")
+    helper = os.path.join(here(), "run_crater_detection_model_py3.py")
     cmd = [model_python, helper, "--version-check"]
     ret = subprocess_call(cmd)
     if ret != 0:
@@ -432,7 +432,7 @@ def check_model_python(model_python, model_dir):
     cmd = [model_python, helper, "--dependency-check", "--model-dir", model_dir]
     ret = subprocess_call(cmd)
     if ret != 0:
-        raise RuntimeError("Python 3 cannot import wangyiranCode dependencies. Use the Python 3 environment that runs the model.")
+        raise RuntimeError("Python 3 cannot import crater_detect_model dependencies. Use the Python 3 environment that runs the model.")
 
 
 def run_check(args, work_dir):

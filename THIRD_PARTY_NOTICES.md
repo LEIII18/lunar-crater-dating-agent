@@ -25,4 +25,4 @@ The automatic-detection tool, its source code, model weights, runtime environmen
 
 ## Project boundary
 
-This repository contains only the integration layer, Streamlit application, tests, configuration templates, and documentation created for the Lunar Crater Intelligent Dating System. It deliberately excludes local directories such as `wangyiranCode/`, `csfd_code/`, `outputs/`, model weights, test datasets, API keys, and local environment files.
+This repository contains only the integration layer, Streamlit application, tests, configuration templates, and documentation created for the Lunar Crater Intelligent Dating System. It deliberately excludes local directories such as `crater_detect_model/`, `csfd_code/`, `outputs/`, model weights, test datasets, API keys, and local environment files.

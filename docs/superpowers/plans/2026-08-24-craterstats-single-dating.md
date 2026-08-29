@@ -12,9 +12,9 @@
 
 ## Global Constraints
 
-- Do not modify `run_wangyiran_model_py3.py` or any detection/model behavior.
-- The only permitted change in `auto_crater_detection_pipeline.py` is replacing `DEFAULT_MODEL_DIR` with `E:\DiHuaSuo\2026\paper\csfd_agent\agent_build\wangyiranCode`.
-- Do not modify files under `wangyiranCode/` or `csfd_code/`.
+- Do not modify `run_crater_detection_model_py3.py` or any detection/model behavior.
+- The only permitted change in `auto_crater_detection_pipeline.py` is replacing `DEFAULT_MODEL_DIR` with `E:\DiHuaSuo\2026\paper\csfd_agent\agent_build\crater_detect_model`.
+- Do not modify files under `crater_detect_model/` or `csfd_code/`.
 - Do not launch or automate CraterstatsGUI; call `craterstats.cli.main(argv)` from Python.
 - Only the three user-specified SID9 paths are real integration-test inputs; historical `.cs`, `.csv`, and `.png` files in that directory must not be read as fixtures or expected results.
 - Overplot 1 is buffered-Poisson with the requested range and `psym=fo`; overplot 2 is `name=plot 2,type=data,binning=pseudo-log,psym=o` and has no range.
@@ -146,13 +146,13 @@ Run the same pytest command. Expected: all `test_path_resolver.py` tests pass wi
 Change only the `DEFAULT_MODEL_DIR` literal in `part1_code/auto_crater_detection_pipeline.py` to:
 
 ```python
-DEFAULT_MODEL_DIR = u"E:\\DiHuaSuo\\2026\\paper\\csfd_agent\\agent_build\\wangyiranCode"
+DEFAULT_MODEL_DIR = u"E:\\DiHuaSuo\\2026\\paper\\csfd_agent\\agent_build\\crater_detect_model"
 ```
 
 Run:
 
 ```powershell
-rg -n "DEFAULT_MODEL_DIR|wangyiranCode" part1_code/auto_crater_detection_pipeline.py
+rg -n "DEFAULT_MODEL_DIR|crater_detect_model" part1_code/auto_crater_detection_pipeline.py
 ```
 
 Expected: the new E-drive path appears in the constant and existing argument wiring remains unchanged.
@@ -569,4 +569,4 @@ Expected: all tests pass, help exits 0, and there are no warnings or errors.
 
 - [ ] **Step 8: Review the final workspace diff and scope**
 
-Confirm only the files listed in this plan changed, plus generated `outputs/` and `.venv/`. Confirm `csfd_code/`, `wangyiranCode/`, and detection behavior remain unchanged. Do not claim completion until verification output is freshly read and all design requirements are checked line by line.
+Confirm only the files listed in this plan changed, plus generated `outputs/` and `.venv/`. Confirm `csfd_code/`, `crater_detect_model/`, and detection behavior remain unchanged. Do not claim completion until verification output is freshly read and all design requirements are checked line by line.

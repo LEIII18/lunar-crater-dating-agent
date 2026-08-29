@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 """
-Python 3 helper for running wangyiranCode crater detection.
+Python 3 helper for running crater_detect_model crater detection.
 
 Do not run this with ArcMap Python 2.7. The ArcPy main script calls this helper
-with a Python 3 interpreter because wangyiranCode uses Python 3 syntax.
+with a Python 3 interpreter because crater_detect_model uses Python 3 syntax.
 """
 
 from __future__ import print_function
@@ -26,10 +26,10 @@ SHAPEFILE_SUFFIXES = [".shp", ".shx", ".dbf", ".prj", ".cpg", ".sbn", ".sbx", ".
 
 
 def parse_args():
-    parser = argparse.ArgumentParser(description="Run wangyiranCode Moon crater detector.")
+    parser = argparse.ArgumentParser(description="Run crater_detect_model Moon crater detector.")
     parser.add_argument("--version-check", action="store_true", help="Only check this is Python 3.")
-    parser.add_argument("--dependency-check", action="store_true", help="Check wangyiranCode imports in this Python 3.")
-    parser.add_argument("--model-dir", default=None, help="wangyiranCode folder.")
+    parser.add_argument("--dependency-check", action="store_true", help="Check crater_detect_model imports in this Python 3.")
+    parser.add_argument("--model-dir", default=None, help="crater_detect_model folder.")
     parser.add_argument("--image-tif", default=None, help="Input tif.")
     parser.add_argument("--output-dir", default=None, help="Output folder for detected shapefile.")
     parser.add_argument("--overwrite", action="store_true", help="Delete existing detector output first.")

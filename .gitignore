@@ -10,7 +10,7 @@ __pycache__/
 *.egg-info/
 outputs/
 test_crater/
-wangyiranCode/
+crater_detect_model/
 csfd_code/
 .superpowers/
 runtime_logs/

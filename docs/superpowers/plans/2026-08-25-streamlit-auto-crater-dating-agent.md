@@ -12,7 +12,7 @@
 
 ## Global Constraints
 
-- `part1_code/auto_crater_detection_pipeline.py` and `part1_code/run_wangyiran_model_py3.py` are stable cores; do not refactor their detection, projection, field conversion, or append logic.
+- `part1_code/auto_crater_detection_pipeline.py` and `part1_code/run_crater_detection_model_py3.py` are stable cores; do not refactor their detection, projection, field conversion, or append logic.
 - The first version continues to require `C:\Python27\ArcGIS10.8\python.exe` and a separate Python 3.9 detector environment.
 - Initial filenames must start with exact uppercase prefixes `AREA_` and `CRATER_`; the complete suffix after each prefix must match exactly.
 - Never modify the user's original AREA, CRATER, or TIFF.
@@ -210,7 +210,7 @@ Defaults:
 ```python
 DEFAULT_ARCPY_PYTHON = Path(r"C:\Python27\ArcGIS10.8\python.exe")
 DEFAULT_MODEL_PYTHON = Path(r"C:\ProgramData\Anaconda3\envs\crater_model_py39\python.exe")
-DEFAULT_MODEL_DIR = PROJECT_ROOT / "wangyiranCode"
+DEFAULT_MODEL_DIR = PROJECT_ROOT / "crater_detect_model"
 ```
 
 Use `subprocess.Popen(argv, shell=False, stdout=PIPE, stderr=STDOUT)`. Decode with the Windows preferred encoding and `errors="replace"`. Write `logs/detection.log`. On nonzero exit, raise `DatingError` with the exit code and log path. On success, reread the copied CRATER and require at least one record.
@@ -515,7 +515,7 @@ Expected: all tests pass, compile succeeds, dependencies are consistent, and the
 - Create: `.gitignore`
 - Create: `.env.example`
 - Create or modify: `README.md`
-- Inspect: third-party license files under `csfd_code` and `wangyiranCode`
+- Inspect: third-party license files under `csfd_code` and `crater_detect_model`
 
 **Interfaces:**
 - Produces a clean local Git repository and, only after user approval/authentication, a private GitHub repository.

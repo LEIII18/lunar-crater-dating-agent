@@ -34,7 +34,7 @@
 ```text
 agent_build/
 ├── part1_code/                     # 已有检测流程，仅更新模型默认路径
-├── wangyiranCode/                  # 王怡然模型、权重和投影文件
+├── crater_detect_model/                  # 王怡然模型、权重和投影文件
 ├── csfd_code/                      # 第三方 craterstatsGUI 源码，保持原样
 ├── crater_dating_agent/            # 新的确定性单次定年工具
 │   ├── __init__.py
@@ -58,7 +58,7 @@ agent_build/
 └── docs/
 ```
 
-`crater_dating_agent` 不导入 `part1_code` 或 `wangyiranCode`。两个阶段只通过 `CRATER/AREA` 文件交接。
+`crater_dating_agent` 不导入 `part1_code` 或 `crater_detect_model`。两个阶段只通过 `CRATER/AREA` 文件交接。
 
 ## 4. 路径管理
 
@@ -67,7 +67,7 @@ agent_build/
 `auto_crater_detection_pipeline.py` 中的 `DEFAULT_MODEL_DIR` 更新为：
 
 ```text
-E:\DiHuaSuo\2026\paper\csfd_agent\agent_build\wangyiranCode
+E:\DiHuaSuo\2026\paper\csfd_agent\agent_build\crater_detect_model
 ```
 
 除这一默认路径外，不修改已有检测流程。
