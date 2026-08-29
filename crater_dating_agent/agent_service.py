@@ -75,6 +75,25 @@ def prepare_agent_session(
         else create_session(inputs, root, clock=clock)
     )
     session = transition(session, SessionPhase.INPUTS_VALIDATED, clock=clock)
+    return continue_preparing_session(
+        session.state_path,
+        cli_main=cli_main,
+        cratercount_factory=cratercount_factory,
+        clock=clock,
+    )
+
+
+def continue_preparing_session(
+    session_path: Path,
+    *,
+    cli_main=None,
+    cratercount_factory: CratercountFactory | None = None,
+    clock=None,
+) -> AgentSession:
+    session = load_session(session_path)
+    if session.phase is not SessionPhase.INPUTS_VALIDATED:
+        raise DatingError("只有已验证输入的会话可以生成全局 CSFD 图")
+    inputs = _inputs(session)
     try:
         overview = generate_global_overview(
             inputs, session.session_dir / "overview", cli_main=cli_main

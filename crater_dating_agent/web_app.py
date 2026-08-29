@@ -12,6 +12,7 @@ from crater_dating_agent.agent_service import (
     complete_confirmed_session,
     confirm_candidate,
     confirm_manual_range,
+    continue_preparing_session,
     recover_interrupted_session,
     undo_last_step,
 )
@@ -170,6 +171,17 @@ def _agent_stage(session, language: Language) -> None:
                 st.session_state.agent_session = recover_interrupted_session(
                     session.state_path
                 )
+                st.rerun()
+            except Exception as exc:
+                _error(exc)
+        return
+    if session.phase is SessionPhase.INPUTS_VALIDATED:
+        if st.button(tr("start_dating", language), type="primary"):
+            try:
+                with st.spinner(tr("start_dating", language)):
+                    st.session_state.agent_session = continue_preparing_session(
+                        session.state_path
+                    )
                 st.rerun()
             except Exception as exc:
                 _error(exc)

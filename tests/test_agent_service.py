@@ -12,14 +12,16 @@ from crater_dating_agent.agent_models import AgentRequest, RangeProposal, RawRan
 from crater_dating_agent.agent_service import (
     analyze_session,
     complete_confirmed_session,
+    continue_preparing_session,
     confirm_candidate,
     confirm_manual_range,
     prepare_agent_session,
     recover_interrupted_session,
     undo_last_step,
 )
-from crater_dating_agent.session_store import load_session, transition
+from crater_dating_agent.session_store import create_session, load_session, transition
 from crater_dating_agent.models import DatingError
+from crater_dating_agent.path_resolver import resolve_agent_inputs
 
 
 def request(tmp_path: Path) -> AgentRequest:
@@ -101,10 +103,25 @@ def test_prepare_analyze_and_confirm_are_separate_persisted_stages(tmp_path: Pat
     assert (prepared.session_dir / "overview" / "SID9_global_csfd.png").read_bytes() == b"global"
     assert (prepared.session_dir / "overview" / "csfd_summary.json").is_file()
     assert not (prepared.session_dir / "confirmation.json").exists()
-    assert not list(prepared.session_dir.rglob("*_age_result.json"))
+
+
+def test_inputs_validated_session_can_resume_global_overview(tmp_path: Path) -> None:
+    session = create_session(
+        resolve_agent_inputs(request(tmp_path)), tmp_path / "outputs"
+    )
+    session = transition(session, SessionPhase.INPUTS_VALIDATED)
+
+    resumed = continue_preparing_session(
+        session.state_path, cli_main=global_cli,
+        cratercount_factory=lambda crater, area: FakeCount(),
+    )
+
+    assert resumed.phase is SessionPhase.OVERVIEW_READY
+    assert (resumed.session_dir / "overview" / "SID9_global_csfd.png").is_file()
+    assert not list(resumed.session_dir.rglob("*_age_result.json"))
 
     analyzed = analyze_session(
-        prepared.state_path, client=FakeClient(), preview_cli_main=all_stage_cli
+        resumed.state_path, client=FakeClient(), preview_cli_main=all_stage_cli
     )
     assert analyzed.phase is SessionPhase.AWAITING_CONFIRMATION
     candidates = json.loads((analyzed.session_dir / "llm" / "range_candidates.json").read_text(encoding="utf-8"))

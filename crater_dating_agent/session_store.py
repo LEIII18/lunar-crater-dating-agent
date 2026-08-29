@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import time
 from dataclasses import replace
 from datetime import datetime
 from pathlib import Path
@@ -86,7 +87,14 @@ def save_session(session: AgentSession) -> None:
         json.dumps(_payload(session), ensure_ascii=False, indent=2) + "\n",
         encoding="utf-8",
     )
-    temporary.replace(session.state_path)
+    for attempt in range(5):
+        try:
+            temporary.replace(session.state_path)
+            return
+        except PermissionError:
+            if attempt == 4:
+                raise
+            time.sleep(0.1 * (attempt + 1))
 
 
 def _allocate_session_dir(output_root: Path, case_id: str, started: datetime) -> Path:
