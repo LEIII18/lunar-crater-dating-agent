@@ -93,6 +93,39 @@ class ThreeRangeClient:
         )
 
 
+class WarningCandidateClient:
+    def analyze(self, session, registry, context):
+        return RangeProposal(
+            (RawRangeCandidate(0.10, 0.20, "low", "低统计候选", ()),),
+            "候选需要人工复核",
+            True,
+        )
+
+
+def test_warning_candidate_is_retained_and_requires_explicit_override(tmp_path: Path) -> None:
+    prepared = prepare_agent_session(
+        request(tmp_path), cli_main=global_cli,
+        cratercount_factory=lambda crater, area: FakeCount(),
+    )
+
+    analyzed = analyze_session(
+        prepared.state_path, client=WarningCandidateClient(), preview_cli_main=all_stage_cli
+    )
+
+    candidates = json.loads(
+        (analyzed.session_dir / "llm" / "range_candidates.json").read_text(encoding="utf-8")
+    )["candidates"]
+    assert analyzed.phase is SessionPhase.AWAITING_CONFIRMATION
+    assert len(candidates) == 1
+    assert candidates[0]["warnings"] == ["LOW_EVENT_COUNT", "LOW_OCCUPIED_BINS"]
+
+    with pytest.raises(DatingError, match="统计警告"):
+        confirm_candidate(analyzed.state_path, 1)
+
+    confirmed = confirm_candidate(analyzed.state_path, 1, warning_override=True)
+    assert confirmed.phase is SessionPhase.CONFIRMED
+
+
 def test_prepare_analyze_and_confirm_are_separate_persisted_stages(tmp_path: Path) -> None:
     prepared = prepare_agent_session(
         request(tmp_path), cli_main=global_cli,

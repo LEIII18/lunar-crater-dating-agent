@@ -249,7 +249,7 @@ def _candidate_stage(session, language: Language) -> None:
             st.write(f"{tr('reason', language)}: {candidate.get('reason', '')}")
             risks = candidate.get("risks", []) + candidate.get("warnings", [])
             if risks:
-                st.warning(f"{tr('risks', language)}: " + "; ".join(risks))
+                st.error(f"{tr('risks', language)}: " + "; ".join(risks))
             override = st.checkbox(
                 tr("warning_override", language), key=f"override_{index}"
             ) if candidate.get("warnings") else False

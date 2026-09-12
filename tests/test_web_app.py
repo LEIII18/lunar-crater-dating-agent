@@ -1,9 +1,12 @@
 from __future__ import annotations
 
+import json
 from pathlib import Path
+from types import SimpleNamespace
 
 from streamlit.testing.v1 import AppTest
 
+import crater_dating_agent.web_app as web_app
 from crater_dating_agent.i18n import Language, tr
 from crater_dating_agent.web_app import parse_local_path
 
@@ -54,3 +57,63 @@ def test_detection_interruption_warning_is_available_in_both_languages() -> None
         "While automatic detection is running, do not change language, refresh "
         "the page, or close this browser tab."
     )
+
+
+def test_candidate_statistics_warnings_are_shown_as_red_errors(
+    tmp_path: Path, monkeypatch
+) -> None:
+    class FakeStreamlit:
+        def __init__(self) -> None:
+            self.errors: list[str] = []
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, exc_type, exc_value, traceback) -> None:
+            return None
+
+        def info(self, message: str) -> None:
+            pass
+
+        def container(self, *, border: bool):
+            return self
+
+        def subheader(self, message: str) -> None:
+            pass
+
+        def write(self, message: str) -> None:
+            pass
+
+        def error(self, message: str) -> None:
+            self.errors.append(message)
+
+        def checkbox(self, label: str, *, key: str) -> bool:
+            return False
+
+        def button(self, label: str, *, key: str) -> bool:
+            return False
+
+        def expander(self, label: str):
+            return self
+
+        def number_input(self, label: str, *, min_value: float, value: float) -> float:
+            return value
+
+    candidate_path = tmp_path / "llm" / "range_candidates.json"
+    candidate_path.parent.mkdir()
+    candidate_path.write_text(json.dumps({
+        "overall_observation": "需要复核",
+        "candidates": [{
+            "range_min_km": 0.1,
+            "range_max_km": 0.2,
+            "reason": "低统计候选",
+            "risks": [],
+            "warnings": ["LOW_EVENT_COUNT"],
+        }],
+    }), encoding="utf-8")
+    fake_st = FakeStreamlit()
+    monkeypatch.setattr(web_app, "st", fake_st)
+
+    web_app._candidate_stage(SimpleNamespace(session_dir=tmp_path, state_path=tmp_path / "state.json"), Language.ZH)
+
+    assert fake_st.errors == [f"{tr('risks', Language.ZH)}: LOW_EVENT_COUNT"]

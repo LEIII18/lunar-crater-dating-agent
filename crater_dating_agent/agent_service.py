@@ -138,7 +138,7 @@ def analyze_session(
         summary_payload = json.loads(summary_path.read_text(encoding="utf-8"))
         proposal = client.analyze(session, _registry(session, summary_payload), None)
         candidates = validate_candidates(
-            proposal, _summary_from_file(summary_path), load_agent_config(), strict=True
+            proposal, _summary_from_file(summary_path), load_agent_config(), strict=False
         )
         preview_root = (session.session_dir / "previews").resolve()
         if preview_root.exists():
