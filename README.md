@@ -88,7 +88,7 @@ agent_build/                         # 本仓库
 7. 用户选择候选或手工输入 range 后，生成最终定年结果。
 
 区间推荐可在网页中选择两种提示词模式：**直接推荐（zero-shot）**使用原始
-`range_selector.txt`，也是默认模式；**SID55 专家案例引导（few-shot）**使用
+`range_selector.txt`，也是默认模式；**专家案例引导（few-shot）**使用
 `range_selector_v2.txt`，并在当前样区之前向 DeepSeek 附上 SID55 的全局图、
 人工拟合图和完整分箱 JSON。两种模式都只提出候选，最终区间仍需人工确认。
 会话的 `llm/range_candidates.json` 和原始响应文件会记录所用 `prompt_mode`。

@@ -74,7 +74,8 @@ def test_web_analysis_uses_selected_few_shot_mode(monkeypatch, tmp_path: Path) -
         def radio(self, label: str, *, options, format_func, key: str) -> str:
             assert label == tr("prompt_mode", Language.ZH)
             assert options == ["zero_shot", "few_shot"]
-            assert format_func("few_shot") == tr("prompt_mode_few_shot", Language.ZH)
+            assert format_func("few_shot") == "专家案例引导（few-shot）"
+            assert tr("prompt_mode_few_shot", Language.EN) == "Expert-guided (few-shot)"
             return "few_shot"
 
         def text_input(self, label: str, *, type: str, key: str) -> str:
