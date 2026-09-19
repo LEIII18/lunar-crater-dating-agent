@@ -31,4 +31,4 @@ markers = ["integration: runs the real Craterstats engine against SID9 data"]
 include = ["crater_dating_agent*"]
 
 [tool.setuptools.package-data]
-crater_dating_agent = ["configs/*.yaml", "prompts/*.txt"]
+crater_dating_agent = ["configs/*.yaml", "prompts/*.txt", "prompts/examples/SID55/*.json", "prompts/examples/SID55/*.png"]

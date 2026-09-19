@@ -7,6 +7,8 @@ from types import SimpleNamespace
 from streamlit.testing.v1 import AppTest
 
 import crater_dating_agent.web_app as web_app
+from crater_dating_agent.agent_models import SessionPhase
+from crater_dating_agent.deepseek_client import RangePromptMode
 from crater_dating_agent.i18n import Language, tr
 from crater_dating_agent.web_app import parse_local_path
 
@@ -57,6 +59,53 @@ def test_detection_interruption_warning_is_available_in_both_languages() -> None
         "While automatic detection is running, do not change language, refresh "
         "the page, or close this browser tab."
     )
+
+
+def test_web_analysis_uses_selected_few_shot_mode(monkeypatch, tmp_path: Path) -> None:
+    selected_modes = []
+    updated = object()
+
+    class FakeStreamlit:
+        session_state = SimpleNamespace()
+
+        def caption(self, text: str) -> None:
+            pass
+
+        def radio(self, label: str, *, options, format_func, key: str) -> str:
+            assert label == tr("prompt_mode", Language.ZH)
+            assert options == ["zero_shot", "few_shot"]
+            assert format_func("few_shot") == tr("prompt_mode_few_shot", Language.ZH)
+            return "few_shot"
+
+        def text_input(self, label: str, *, type: str, key: str) -> str:
+            return "test-key"
+
+        def button(self, label: str, *, type: str) -> bool:
+            return True
+
+        def empty(self):
+            return SimpleNamespace(info=lambda text: None)
+
+        def rerun(self) -> None:
+            pass
+
+    class FakeClient:
+        def __init__(self, settings, *, response_language, progress_callback, prompt_mode):
+            selected_modes.append(prompt_mode)
+
+    monkeypatch.delenv("DEEPSEEK_API_KEY", raising=False)
+    monkeypatch.setattr(web_app, "st", FakeStreamlit())
+    monkeypatch.setattr(web_app.DeepSeekSettings, "from_env", lambda values: object())
+    monkeypatch.setattr(web_app, "DeepSeekRangeClient", FakeClient)
+    monkeypatch.setattr(web_app, "analyze_session", lambda path, *, client: updated)
+
+    web_app._agent_stage(
+        SimpleNamespace(phase=SessionPhase.OVERVIEW_READY, state_path=tmp_path / "state.json"),
+        Language.ZH,
+    )
+
+    assert selected_modes == [RangePromptMode.FEW_SHOT]
+    assert web_app.st.session_state.agent_session is updated
 
 
 def test_candidate_statistics_warnings_are_shown_as_red_errors(

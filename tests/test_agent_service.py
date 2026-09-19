@@ -158,6 +158,7 @@ def test_inputs_validated_session_can_resume_global_overview(tmp_path: Path) -> 
     )
     assert analyzed.phase is SessionPhase.AWAITING_CONFIRMATION
     candidates = json.loads((analyzed.session_dir / "llm" / "range_candidates.json").read_text(encoding="utf-8"))
+    assert candidates["prompt_mode"] == "zero_shot"
     assert candidates["candidates"][0]["event_count"] == 63
 
     confirmed = confirm_candidate(analyzed.state_path, 1)

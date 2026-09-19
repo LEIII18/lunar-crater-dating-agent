@@ -4,11 +4,11 @@ import base64
 import json
 import os
 from dataclasses import dataclass
+from enum import Enum
 from importlib.resources import files
 from io import BytesIO
 from pathlib import Path
-from typing import Mapping
-from typing import Callable
+from typing import Callable, Mapping
 
 from PIL import Image, UnidentifiedImageError
 
@@ -22,6 +22,11 @@ from .tool_registry import ToolRegistry
 
 VISION_MODEL = "deepseek-v4-flash-vision-exp"
 MAX_INLINE_IMAGE_BYTES = 32 * 1024 * 1024
+
+
+class RangePromptMode(str, Enum):
+    ZERO_SHOT = "zero_shot"
+    FEW_SHOT = "few_shot"
 
 
 @dataclass(frozen=True)
@@ -60,10 +65,12 @@ class DeepSeekRangeClient:
         sdk_client=None,
         progress_callback: Callable[[str], None] | None = None,
         response_language: Language = Language.ZH,
+        prompt_mode: RangePromptMode = RangePromptMode.ZERO_SHOT,
     ) -> None:
         self.settings = settings
         self._progress = progress_callback or (lambda message: None)
         self.response_language = response_language
+        self.prompt_mode = RangePromptMode(prompt_mode)
         if sdk_client is None:
             from openai import OpenAI
 
@@ -91,7 +98,8 @@ class DeepSeekRangeClient:
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(
             json.dumps(
-                {"model": self.settings.model, "content": content},
+                {"model": self.settings.model, "prompt_mode": self.prompt_mode.value,
+                 "content": content},
                 ensure_ascii=False,
                 indent=2,
             ) + "\n",
@@ -151,6 +159,58 @@ class DeepSeekRangeClient:
         return f"data:image/png;base64,{encoded}"
 
     @staticmethod
+    def _png_data_url(image: bytes, label: str) -> str:
+        if len(image) > MAX_INLINE_IMAGE_BYTES:
+            raise DatingError(f"{label} 超过 DeepSeek Base64 单图 32 MiB 限制")
+        try:
+            with Image.open(BytesIO(image)) as decoded:
+                image_format = decoded.format
+                width, height = decoded.size
+                decoded.verify()
+        except (UnidentifiedImageError, OSError, SyntaxError, ValueError) as exc:
+            raise DatingError(f"{label} 不是有效 PNG") from exc
+        if image_format != "PNG":
+            raise DatingError(f"{label} 实际格式不是 PNG")
+        if width > 8192 or height > 8192:
+            raise DatingError(f"{label} 尺寸超过 DeepSeek 8192 像素边长限制：{width}×{height}")
+        return f"data:image/png;base64,{base64.b64encode(image).decode('ascii')}"
+
+    def _sid55_example_message(self) -> dict[str, object]:
+        example_dir = files("crater_dating_agent").joinpath("prompts/examples/SID55")
+        try:
+            summary = json.loads(
+                example_dir.joinpath("csfd_summary.json").read_text(encoding="utf-8")
+            )
+            global_image = self._png_data_url(
+                example_dir.joinpath("SID55_global_csfd.png").read_bytes(),
+                "SID55 全局 CSFD PNG",
+            )
+            fitted_image = self._png_data_url(
+                example_dir.joinpath("SID55_csfd.png").read_bytes(),
+                "SID55 人工拟合 CSFD PNG",
+            )
+        except DatingError:
+            raise
+        except (OSError, TypeError, ValueError, json.JSONDecodeError) as exc:
+            raise DatingError(f"无法读取 SID55 few-shot 示例：{exc}") from exc
+        return {
+            "role": "user",
+            "content": [
+                {
+                    "type": "text",
+                    "text": (
+                        "以下是人工专家 SID55 few-shot 案例，请学习其选择逻辑，不要机械复用其区间。"
+                        "第一张图为全局 CSFD，第二张图为人工选择 0.90–6.00 km 后的 CSFD 拟合图。"
+                        "完整 pseudo-log 分箱 JSON 如下：\n"
+                        + json.dumps(summary, ensure_ascii=False, separators=(",", ":"))
+                    ),
+                },
+                {"type": "image_url", "image_url": {"url": global_image, "detail": "original"}},
+                {"type": "image_url", "image_url": {"url": fitted_image, "detail": "original"}},
+            ],
+        }
+
+    @staticmethod
     def _assistant_message(message) -> dict[str, object]:
         if hasattr(message, "model_dump"):
             data = message.model_dump()
@@ -172,8 +232,13 @@ class DeepSeekRangeClient:
         registry: ToolRegistry,
         context: object,
     ) -> RangeProposal:
+        prompt_name = (
+            "range_selector_v2.txt"
+            if self.prompt_mode is RangePromptMode.FEW_SHOT
+            else "range_selector.txt"
+        )
         prompt = files("crater_dating_agent").joinpath(
-            "prompts/range_selector.txt"
+            "prompts", prompt_name
         ).read_text(encoding="utf-8")
         image_url = self._global_plot_data_url(session)
         language_instruction = (
@@ -183,6 +248,10 @@ class DeepSeekRangeClient:
         )
         messages: list[dict[str, object]] = [
             {"role": "system", "content": prompt},
+        ]
+        if self.prompt_mode is RangePromptMode.FEW_SHOT:
+            messages.append(self._sid55_example_message())
+        messages.append(
             {
                 "role": "user",
                 "content": [
@@ -201,8 +270,8 @@ class DeepSeekRangeClient:
                         "image_url": {"url": image_url, "detail": "original"},
                     },
                 ],
-            },
-        ]
+            }
+        )
         repair_attempts = load_agent_config().proposal_repair_attempts
         repairs_used = 0
         request_number = 0
@@ -266,7 +335,9 @@ class DeepSeekRangeClient:
                     raw_path.parent.mkdir(parents=True, exist_ok=True)
                     raw_path.write_text(
                         json.dumps(
-                            {"model": self.settings.model, "content": content},
+                            {"model": self.settings.model,
+                             "prompt_mode": self.prompt_mode.value,
+                             "content": content},
                             ensure_ascii=False, indent=2,
                         ) + "\n",
                         encoding="utf-8",

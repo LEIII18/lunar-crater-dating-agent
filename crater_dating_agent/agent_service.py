@@ -178,6 +178,9 @@ def analyze_session(
         _write_json(
             session.session_dir / "llm" / "range_candidates.json",
             {"overall_observation": proposal.overall_observation,
+             "prompt_mode": getattr(
+                 getattr(client, "prompt_mode", None), "value", "zero_shot"
+             ),
              "candidates": candidate_payloads},
         )
     except BaseException as exc:

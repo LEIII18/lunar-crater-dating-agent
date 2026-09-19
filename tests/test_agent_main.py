@@ -7,6 +7,7 @@ from types import SimpleNamespace
 from crater_dating_agent.agent_main import AgentCliServices, main
 import crater_dating_agent.agent_main as agent_main_module
 from crater_dating_agent.agent_models import SessionPhase
+from crater_dating_agent.deepseek_client import RangePromptMode
 from crater_dating_agent.models import DatingError
 
 
@@ -123,7 +124,7 @@ def test_api_failure_still_shows_resumable_session_and_global_plot(tmp_path: Pat
         state_path=services.resume(None).state_path,
         phase=SessionPhase.OVERVIEW_READY,
     )
-    services.analyze = lambda path: (_ for _ in ()).throw(DatingError("API unavailable"))
+    services.analyze = lambda path, *, prompt_mode: (_ for _ in ()).throw(DatingError("API unavailable"))
     output = []
 
     code = main(argv(tmp_path), input_fn=lambda prompt: "q",
@@ -161,8 +162,9 @@ def test_production_services_forward_deepseek_progress_to_terminal(
     expected = object()
 
     class FakeClient:
-        def __init__(self, settings, *, progress_callback):
+        def __init__(self, settings, *, progress_callback, prompt_mode):
             self.progress_callback = progress_callback
+            self.prompt_mode = prompt_mode
 
     monkeypatch.setattr(agent_main_module.DeepSeekSettings, "from_env", lambda: object())
     monkeypatch.setattr(agent_main_module, "DeepSeekRangeClient", FakeClient)
@@ -176,6 +178,28 @@ def test_production_services_forward_deepseek_progress_to_terminal(
 
     assert services.analyze(tmp_path / "session_state.json") is expected
     assert output == ["正在调用 DeepSeek……"]
+
+
+def test_cli_forwards_few_shot_mode_for_overview_ready_session(tmp_path: Path) -> None:
+    services = fake_services(tmp_path)
+    overview = SimpleNamespace(
+        session_dir=services.resume(None).session_dir,
+        state_path=services.resume(None).state_path,
+        phase=SessionPhase.OVERVIEW_READY,
+    )
+    services.start = lambda request: overview
+    selected_modes = []
+    services.analyze = lambda path, *, prompt_mode: (
+        selected_modes.append(prompt_mode) or services.resume(path)
+    )
+
+    code = main(
+        argv(tmp_path) + ["--prompt-mode", "few_shot"],
+        input_fn=lambda prompt: "q", output_fn=lambda text: None, services=services,
+    )
+
+    assert code == 0
+    assert selected_modes == [RangePromptMode.FEW_SHOT]
 
 
 def test_confirmed_resume_retries_final_without_reasking_for_range(tmp_path: Path) -> None:

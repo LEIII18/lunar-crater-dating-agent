@@ -87,6 +87,14 @@ agent_build/                         # 本仓库
 6. 将全局图和结构化 CSFD 数据交给 DeepSeek，显示 3 个候选区间及拟合图；
 7. 用户选择候选或手工输入 range 后，生成最终定年结果。
 
+区间推荐可在网页中选择两种提示词模式：**直接推荐（zero-shot）**使用原始
+`range_selector.txt`，也是默认模式；**SID55 专家案例引导（few-shot）**使用
+`range_selector_v2.txt`，并在当前样区之前向 DeepSeek 附上 SID55 的全局图、
+人工拟合图和完整分箱 JSON。两种模式都只提出候选，最终区间仍需人工确认。
+会话的 `llm/range_candidates.json` 和原始响应文件会记录所用 `prompt_mode`。
+命令行入口 `python -m crater_dating_agent.agent_main` 可通过
+`--prompt-mode zero_shot|few_shot` 指定模式；不指定时保持 zero-shot。
+
 ## 测试
 
 ```powershell

@@ -16,7 +16,7 @@ from crater_dating_agent.agent_service import (
     recover_interrupted_session,
     undo_last_step,
 )
-from crater_dating_agent.deepseek_client import DeepSeekRangeClient, DeepSeekSettings
+from crater_dating_agent.deepseek_client import DeepSeekRangeClient, DeepSeekSettings, RangePromptMode
 from crater_dating_agent.i18n import Language, tr
 from crater_dating_agent.models import DatingError
 from crater_dating_agent.overlay_preview import render_overlay_preview
@@ -198,6 +198,12 @@ def _agent_stage(session, language: Language) -> None:
             except Exception as exc:
                 _error(exc)
     if session.phase is SessionPhase.OVERVIEW_READY:
+        prompt_mode = st.radio(
+            tr("prompt_mode", language),
+            options=[mode.value for mode in RangePromptMode],
+            format_func=lambda value: tr(f"prompt_mode_{value}", language),
+            key="range_prompt_mode",
+        )
         env_key = os.getenv("DEEPSEEK_API_KEY", "").strip()
         api_key = env_key or st.text_input(
             tr("api_key", language), type="password", key="deepseek_api_key"
@@ -215,6 +221,7 @@ def _agent_stage(session, language: Language) -> None:
                 client = DeepSeekRangeClient(
                     settings, response_language=language,
                     progress_callback=progress.info,
+                    prompt_mode=RangePromptMode(prompt_mode),
                 )
                 updated = analyze_session(session.state_path, client=client)
                 st.session_state.agent_session = updated

@@ -15,7 +15,7 @@ from .agent_service import (
     preview_manual_range,
     prepare_agent_session,
 )
-from .deepseek_client import DeepSeekRangeClient, DeepSeekSettings
+from .deepseek_client import DeepSeekRangeClient, DeepSeekSettings, RangePromptMode
 from .models import DatingError
 from .session_store import load_session
 
@@ -30,9 +30,10 @@ class AgentCliServices:
     def resume(self, path: Path):
         return load_session(path)
 
-    def analyze(self, path: Path):
+    def analyze(self, path: Path, *, prompt_mode: RangePromptMode = RangePromptMode.ZERO_SHOT):
         client = DeepSeekRangeClient(
-            DeepSeekSettings.from_env(), progress_callback=self._output_fn
+            DeepSeekSettings.from_env(), progress_callback=self._output_fn,
+            prompt_mode=prompt_mode,
         )
         return analyze_session(path, client=client)
 
@@ -50,6 +51,11 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--image-tif", type=Path)
     parser.add_argument("--output-dir", type=Path)
     parser.add_argument("--resume-session", type=Path, help="已有 session_state.json")
+    parser.add_argument(
+        "--prompt-mode", choices=[mode.value for mode in RangePromptMode],
+        default=RangePromptMode.ZERO_SHOT.value,
+        help="区间推荐提示词模式：zero_shot（默认）或 few_shot（SID55 专家案例）",
+    )
     return parser
 
 
@@ -75,7 +81,9 @@ def main(
             plot = next((session.session_dir / "overview").glob("*_global_csfd.png"))
             output_fn(f"全局 CSFD 图：{plot}")
             output_fn(f"可恢复会话：{session.state_path}")
-            session = services.analyze(session.state_path)
+            session = services.analyze(
+                session.state_path, prompt_mode=RangePromptMode(args.prompt_mode)
+            )
         if session.phase is SessionPhase.CONFIRMED:
             completed = services.complete(session.state_path)
             output_fn("最终定年完成")

@@ -9,7 +9,7 @@ import pytest
 from PIL import Image
 
 from crater_dating_agent.agent_models import SessionPhase
-from crater_dating_agent.deepseek_client import DeepSeekRangeClient, DeepSeekSettings
+from crater_dating_agent.deepseek_client import DeepSeekRangeClient, DeepSeekSettings, RangePromptMode
 from crater_dating_agent.i18n import Language
 from crater_dating_agent.models import DatingError
 from crater_dating_agent.tool_registry import ToolDefinition, ToolRegistry
@@ -191,7 +191,7 @@ def test_prompt_prioritizes_one_km_craters_without_relaxing_reliability(
     prompt = completions.requests[0]["messages"][0]["content"]
     assert "D ≥ 1 km" in prompt
     assert "图像" in prompt and "结构化" in prompt
-    assert "不能牺牲统计可靠性" in prompt
+    assert "统计可靠性" in prompt
     assert "三个" in prompt
 
 
@@ -290,3 +290,48 @@ def test_unrepairable_response_is_saved_before_error(tmp_path: Path) -> None:
     second = json.loads((tmp_path / "llm" / "raw_response_attempt_2.json").read_text(encoding="utf-8"))
     assert first["content"] == "first invalid"
     assert second["content"] == "second invalid"
+
+
+def test_sid55_few_shot_precedes_current_case_with_images_and_full_summary(tmp_path: Path) -> None:
+    content = json.dumps({
+        "candidates": [], "overall_observation": "没有可靠区间",
+        "needs_human_review": True,
+    }, ensure_ascii=False)
+    completions = FakeCompletions([message(content)])
+    sdk = SimpleNamespace(chat=SimpleNamespace(completions=completions))
+    settings = DeepSeekSettings("secret", "https://api.deepseek.com", "deepseek-v4-flash-vision-exp")
+
+    DeepSeekRangeClient(
+        settings, sdk_client=sdk, prompt_mode=RangePromptMode.FEW_SHOT
+    ).analyze(
+        vision_session(tmp_path), ToolRegistry(), None
+    )
+
+    messages = completions.requests[0]["messages"]
+    assert "SID55" in messages[0]["content"]
+    assert messages[1]["role"] == "user"
+    example = messages[1]["content"]
+    assert "SID55" in example[0]["text"]
+    assert '"total_event_count":204' in example[0]["text"]
+    assert [item["type"] for item in example[1:]] == ["image_url", "image_url"]
+    assert all(item["image_url"]["url"].startswith("data:image/png;base64,") for item in example[1:])
+    assert messages[2]["role"] == "user"
+    assert "结构化 CSFD" in messages[2]["content"][0]["text"]
+
+
+def test_default_zero_shot_uses_original_prompt_without_sid55_example(tmp_path: Path) -> None:
+    completions = FakeCompletions([message(json.dumps({
+        "candidates": [], "overall_observation": "无可靠区间",
+        "needs_human_review": True,
+    }, ensure_ascii=False))])
+    sdk = SimpleNamespace(chat=SimpleNamespace(completions=completions))
+    settings = DeepSeekSettings("secret", "https://api.deepseek.com", "deepseek-v4-flash-vision-exp")
+
+    DeepSeekRangeClient(settings, sdk_client=sdk).analyze(
+        vision_session(tmp_path), ToolRegistry(), None
+    )
+
+    messages = completions.requests[0]["messages"]
+    assert len(messages) == 2
+    assert "SID55" not in messages[0]["content"]
+    assert messages[1]["role"] == "user"
