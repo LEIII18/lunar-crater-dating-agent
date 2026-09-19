@@ -14,3 +14,4 @@ crater_detect_model/
 csfd_code/
 .superpowers/
 runtime_logs/
+.worktrees/
