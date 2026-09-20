@@ -10,7 +10,7 @@ import crater_dating_agent.web_app as web_app
 from crater_dating_agent.agent_models import SessionPhase
 from crater_dating_agent.deepseek_client import RangePromptMode
 from crater_dating_agent.i18n import Language, tr
-from crater_dating_agent.web_app import parse_local_path
+from crater_dating_agent.web_app import default_output_root, parse_local_path
 
 
 APP = Path(__file__).resolve().parents[1] / "crater_dating_agent" / "web_app.py"
@@ -22,6 +22,13 @@ def test_copied_local_path_accepts_matching_outer_quotes_and_whitespace() -> Non
     assert parse_local_path('  "E:\\data\\AREA_SID9.shp"  ') == expected
     assert parse_local_path("  'E:\\data\\AREA_SID9.shp'  ") == expected
     assert parse_local_path(r"E:\data\AREA_SID9.shp") == expected
+
+
+def test_output_root_uses_environment_override_and_preserves_default(tmp_path: Path) -> None:
+    configured = tmp_path / "configured-output"
+
+    assert default_output_root({"CRATER_OUTPUT_ROOT": str(configured)}) == configured
+    assert default_output_root({}) == web_app.PROJECT_ROOT / "outputs"
 
 
 def test_initial_page_has_bilingual_switch_and_three_required_paths() -> None:

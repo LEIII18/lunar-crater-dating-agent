@@ -53,8 +53,8 @@ def test_real_sid9_requires_confirmation_between_global_and_final_plots(tmp_path
     assert "range=" not in global_config
 
     analyzed = analyze_session(prepared.state_path, client=FixedRangeClient())
-    assert len(list((prepared.session_dir / "previews").rglob("*_age_result.json"))) == 3
-    assert len(list((prepared.session_dir / "previews").rglob("*_csfd.png"))) == 3
+    assert len(list((prepared.session_dir / "previews_zero").rglob("*_age_result.json"))) == 3
+    assert len(list((prepared.session_dir / "previews_zero").rglob("*_csfd.png"))) == 3
     assert not (prepared.session_dir / "final").exists()
     confirmed = confirm_candidate(analyzed.state_path, 1)
     completed = complete_confirmed_session(confirmed.state_path)

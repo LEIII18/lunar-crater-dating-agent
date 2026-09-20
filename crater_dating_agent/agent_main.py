@@ -16,6 +16,7 @@ from .agent_service import (
     prepare_agent_session,
 )
 from .deepseek_client import DeepSeekRangeClient, DeepSeekSettings, RangePromptMode
+from .llm_storage import active_candidates_path
 from .models import DatingError
 from .session_store import load_session
 
@@ -94,7 +95,7 @@ def main(
 
         plot = next((session.session_dir / "overview").glob("*_global_csfd.png"))
         output_fn(f"全局 CSFD 图：{plot}")
-        data = json.loads((session.session_dir / "llm" / "range_candidates.json").read_text(encoding="utf-8"))
+        data = json.loads(active_candidates_path(session.session_dir).read_text(encoding="utf-8"))
         observation = data.get("overall_observation")
         if observation:
             output_fn(f"总体观察：{observation}")

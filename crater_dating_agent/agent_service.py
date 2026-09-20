@@ -15,6 +15,13 @@ from .agent_models import (
 )
 from .confirmation import verify_confirmation, write_confirmation
 from .deepseek_client import DeepSeekRangeClient
+from .llm_storage import (
+    active_candidates_path,
+    llm_output_dir,
+    preview_output_dir,
+    prompt_mode_value,
+    write_active_mode,
+)
 from .models import DatingError, DatingRequest, ResolvedInputs
 from .overview import CratercountFactory, extract_csfd_summary, generate_global_overview
 from .path_resolver import resolve_agent_inputs
@@ -133,6 +140,10 @@ def analyze_session(
     if session.phase is not SessionPhase.OVERVIEW_READY:
         raise DatingError("只有全局图准备完成的会话可以开始分析")
     session = transition(session, SessionPhase.ANALYZING, clock=clock)
+    prompt_mode = prompt_mode_value(getattr(client, "prompt_mode", None))
+    mode_llm_dir = llm_output_dir(session.session_dir, prompt_mode)
+    if mode_llm_dir.exists():
+        shutil.rmtree(mode_llm_dir)
     summary_path = session.session_dir / "overview" / "csfd_summary.json"
     try:
         summary_payload = json.loads(summary_path.read_text(encoding="utf-8"))
@@ -140,7 +151,7 @@ def analyze_session(
         candidates = validate_candidates(
             proposal, _summary_from_file(summary_path), load_agent_config(), strict=False
         )
-        preview_root = (session.session_dir / "previews").resolve()
+        preview_root = preview_output_dir(session.session_dir, prompt_mode).resolve()
         if preview_root.exists():
             if preview_root.parent != session.session_dir.resolve():
                 raise DatingError("候选预览目录超出当前会话")
@@ -176,13 +187,12 @@ def analyze_session(
             }
             candidate_payloads.append(payload)
         _write_json(
-            session.session_dir / "llm" / "range_candidates.json",
+            mode_llm_dir / "range_candidates.json",
             {"overall_observation": proposal.overall_observation,
-             "prompt_mode": getattr(
-                 getattr(client, "prompt_mode", None), "value", "zero_shot"
-             ),
+             "prompt_mode": prompt_mode,
              "candidates": candidate_payloads},
         )
+        write_active_mode(session.session_dir, prompt_mode)
     except BaseException as exc:
         if not isinstance(exc, Exception):
             append_transcript(
@@ -256,8 +266,8 @@ def undo_last_step(session_path: Path, *, clock=None) -> AgentSession:
     target = targets.get(session.phase)
     if target is None:
         raise DatingError("当前阶段没有可撤回的上一步")
-    if target is SessionPhase.AWAITING_CONFIRMATION and not (
-        session.session_dir / "llm" / "range_candidates.json"
+    if target is SessionPhase.AWAITING_CONFIRMATION and not active_candidates_path(
+        session.session_dir
     ).is_file():
         raise DatingError("候选区间记录不存在，不能撤回到候选选择阶段")
     restored = restore_session(session, target, clock=clock)
@@ -280,7 +290,7 @@ def confirm_candidate(
     clock=None,
 ) -> AgentSession:
     session = load_session(session_path)
-    data = json.loads((session.session_dir / "llm" / "range_candidates.json").read_text(encoding="utf-8"))
+    data = json.loads(active_candidates_path(session.session_dir).read_text(encoding="utf-8"))
     try:
         if not isinstance(selection, int) or isinstance(selection, bool):
             raise IndexError

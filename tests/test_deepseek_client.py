@@ -125,7 +125,7 @@ def test_tool_turn_replays_reasoning_content_and_persists_redacted_protocol(tmp_
     persisted = transcript.read_text(encoding="utf-8")
     assert '"event":"tool_call"' in persisted
     assert '"event":"tool_result"' in persisted
-    raw = (tmp_path / "llm" / "raw_response.json").read_text(encoding="utf-8")
+    raw = (tmp_path / "llm_zero" / "raw_response.json").read_text(encoding="utf-8")
     assert json.loads(json.loads(raw)["content"])["overall_observation"] == "无可靠区间"
     assert "test-secret-value" not in persisted + raw
     assert "data:image" not in persisted + raw
@@ -286,8 +286,8 @@ def test_unrepairable_response_is_saved_before_error(tmp_path: Path) -> None:
     with pytest.raises(DatingError, match="候选 JSON"):
         DeepSeekRangeClient(settings, sdk_client=sdk).analyze(session, ToolRegistry(), None)
 
-    first = json.loads((tmp_path / "llm" / "raw_response_attempt_1.json").read_text(encoding="utf-8"))
-    second = json.loads((tmp_path / "llm" / "raw_response_attempt_2.json").read_text(encoding="utf-8"))
+    first = json.loads((tmp_path / "llm_zero" / "raw_response_attempt_1.json").read_text(encoding="utf-8"))
+    second = json.loads((tmp_path / "llm_zero" / "raw_response_attempt_2.json").read_text(encoding="utf-8"))
     assert first["content"] == "first invalid"
     assert second["content"] == "second invalid"
 

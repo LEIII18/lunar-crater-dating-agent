@@ -31,10 +31,11 @@ AREA 与 CRATER 的编号必须完全相同，且 Shapefile 目录中必须包�
    ARCPY_PYTHON=<ArcGIS 10.8 / ArcPy Python 2.7 的 python.exe 绝对路径>
    CRATER_MODEL_PYTHON=<撞击坑自动识别模型 Python 环境的 python.exe 绝对路径>
    CRATER_MODEL_DIR=<crater_detect_model 目录的绝对路径>
+   CRATER_OUTPUT_ROOT=<任务输出根目录的绝对路径，例如 E:\DiHuaSuo\2026\paper\csfd_agent\agent_build\outputs_modify>
    DEEPSEEK_API_KEY=<可选；建议在此配置，而不要写入代码或提交到 Git>
    ```
 
-   启动时，网页“高级设置”会自动读取前三项环境变量并作为默认值显示，因此无需每次重复输入。若未配置 `DEEPSEEK_API_KEY`，页面仍可临时输入；该值只保存在当前 Streamlit 进程内存。
+   启动时，网页“高级设置”会自动读取上述路径环境变量并作为默认值显示，因此无需每次重复输入。未设置 `CRATER_OUTPUT_ROOT` 时，默认使用 `<项目目录>\outputs`。若未配置 `DEEPSEEK_API_KEY`，页面仍可临时输入；该值只保存在当前 Streamlit 进程内存。
 
 4. 运行后打开 `http://localhost:8501`。
 
@@ -91,7 +92,9 @@ agent_build/                         # 本仓库
 `range_selector.txt`，也是默认模式；**专家案例引导（few-shot）**使用
 `range_selector_v2.txt`，并在当前样区之前向 DeepSeek 附上 SID55 的全局图、
 人工拟合图和完整分箱 JSON。两种模式都只提出候选，最终区间仍需人工确认。
-会话的 `llm/range_candidates.json` 和原始响应文件会记录所用 `prompt_mode`。
+zero-shot 的候选、原始响应与预览保存在 `llm_zero/`、`previews_zero/`；few-shot
+对应保存在 `llm_few/`、`previews_few/`。撤回后切换模式会保留另一模式的结果；同一
+模式重新调用会覆盖本模式的旧候选和预览。
 命令行入口 `python -m crater_dating_agent.agent_main` 可通过
 `--prompt-mode zero_shot|few_shot` 指定模式；不指定时保持 zero-shot。
 

@@ -14,6 +14,7 @@ from PIL import Image, UnidentifiedImageError
 
 from .agent_models import AgentSession, RangeProposal
 from .i18n import Language
+from .llm_storage import llm_output_dir
 from .models import DatingError
 from .range_candidates import load_agent_config, parse_proposal_json
 from .session_store import append_transcript
@@ -94,7 +95,7 @@ class DeepSeekRangeClient:
     def _save_raw_attempt(self, session, attempt: int, content: str) -> None:
         if not hasattr(session, "session_dir"):
             return
-        path = session.session_dir / "llm" / f"raw_response_attempt_{attempt}.json"
+        path = llm_output_dir(session.session_dir, self.prompt_mode) / f"raw_response_attempt_{attempt}.json"
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(
             json.dumps(
@@ -331,7 +332,7 @@ class DeepSeekRangeClient:
             try:
                 proposal = parse_proposal_json(self._json_content(content))
                 if hasattr(session, "session_dir"):
-                    raw_path = session.session_dir / "llm" / "raw_response.json"
+                    raw_path = llm_output_dir(session.session_dir, self.prompt_mode) / "raw_response.json"
                     raw_path.parent.mkdir(parents=True, exist_ok=True)
                     raw_path.write_text(
                         json.dumps(

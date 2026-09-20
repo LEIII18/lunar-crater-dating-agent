@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import os
 from pathlib import Path
+from typing import Mapping
 
 import streamlit as st
 
@@ -18,6 +19,7 @@ from crater_dating_agent.agent_service import (
 )
 from crater_dating_agent.deepseek_client import DeepSeekRangeClient, DeepSeekSettings, RangePromptMode
 from crater_dating_agent.i18n import Language, tr
+from crater_dating_agent.llm_storage import active_candidates_path
 from crater_dating_agent.models import DatingError
 from crater_dating_agent.overlay_preview import render_overlay_preview
 from crater_dating_agent.pipeline_runner import DetectionSettings
@@ -36,6 +38,12 @@ from crater_dating_agent.workflow_service import (
 
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
+
+
+def default_output_root(environ: Mapping[str, str] | None = None) -> Path:
+    values = os.environ if environ is None else environ
+    configured = values.get("CRATER_OUTPUT_ROOT", "").strip()
+    return Path(configured) if configured else PROJECT_ROOT / "outputs"
 
 
 def parse_local_path(value: str) -> Path:
@@ -86,7 +94,7 @@ def _settings(language: Language) -> tuple[DetectionSettings, Path]:
         )
         model_dir = st.text_input(tr("model_dir", language), str(defaults.model_dir))
         output_root = st.text_input(
-            tr("output_root", language), str(PROJECT_ROOT / "outputs")
+            tr("output_root", language), str(default_output_root())
         )
     return (
         DetectionSettings(
@@ -238,7 +246,7 @@ def _agent_stage(session, language: Language) -> None:
 
 
 def _candidate_stage(session, language: Language) -> None:
-    path = session.session_dir / "llm" / "range_candidates.json"
+    path = active_candidates_path(session.session_dir)
     data = json.loads(path.read_text(encoding="utf-8"))
     st.info(data.get("overall_observation", ""))
     for index, candidate in enumerate(data.get("candidates", []), 1):

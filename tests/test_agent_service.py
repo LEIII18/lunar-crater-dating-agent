@@ -22,6 +22,7 @@ from crater_dating_agent.agent_service import (
 from crater_dating_agent.session_store import create_session, load_session, transition
 from crater_dating_agent.models import DatingError
 from crater_dating_agent.path_resolver import resolve_agent_inputs
+from crater_dating_agent.deepseek_client import RangePromptMode
 
 
 def request(tmp_path: Path) -> AgentRequest:
@@ -74,10 +75,34 @@ def all_stage_cli(argv: list[str]) -> None:
 
 
 class FakeClient:
+    prompt_mode = RangePromptMode.ZERO_SHOT
+
     def analyze(self, session, registry, context):
         assert session.phase is SessionPhase.ANALYZING
         assert any(tool["function"]["name"] == "get_csfd_summary" for tool in registry.schemas_for(session.phase))
         return RangeProposal((RawRangeCandidate(0.06, 0.2, "high", "连续稳定", ()),), "测试", True)
+
+
+class FewShotClient:
+    prompt_mode = RangePromptMode.FEW_SHOT
+
+    def analyze(self, session, registry, context):
+        return RangeProposal(
+            (RawRangeCandidate(0.07, 0.2, "medium", "few-shot", ()),),
+            "few-shot 测试",
+            True,
+        )
+
+
+class SecondZeroShotClient:
+    prompt_mode = RangePromptMode.ZERO_SHOT
+
+    def analyze(self, session, registry, context):
+        return RangeProposal(
+            (RawRangeCandidate(0.08, 0.2, "low", "zero 重跑", ()),),
+            "zero 重跑测试",
+            True,
+        )
 
 
 class ThreeRangeClient:
@@ -113,7 +138,7 @@ def test_warning_candidate_is_retained_and_requires_explicit_override(tmp_path: 
     )
 
     candidates = json.loads(
-        (analyzed.session_dir / "llm" / "range_candidates.json").read_text(encoding="utf-8")
+        (analyzed.session_dir / "llm_zero" / "range_candidates.json").read_text(encoding="utf-8")
     )["candidates"]
     assert analyzed.phase is SessionPhase.AWAITING_CONFIRMATION
     assert len(candidates) == 1
@@ -157,13 +182,52 @@ def test_inputs_validated_session_can_resume_global_overview(tmp_path: Path) -> 
         resumed.state_path, client=FakeClient(), preview_cli_main=all_stage_cli
     )
     assert analyzed.phase is SessionPhase.AWAITING_CONFIRMATION
-    candidates = json.loads((analyzed.session_dir / "llm" / "range_candidates.json").read_text(encoding="utf-8"))
+    candidates = json.loads((analyzed.session_dir / "llm_zero" / "range_candidates.json").read_text(encoding="utf-8"))
     assert candidates["prompt_mode"] == "zero_shot"
     assert candidates["candidates"][0]["event_count"] == 63
 
     confirmed = confirm_candidate(analyzed.state_path, 1)
     assert confirmed.phase is SessionPhase.CONFIRMED
     assert load_session(confirmed.state_path).phase is SessionPhase.CONFIRMED
+
+
+def test_prompt_modes_keep_separate_llm_and_preview_outputs(tmp_path: Path) -> None:
+    prepared = prepare_agent_session(
+        request(tmp_path), cli_main=global_cli,
+        cratercount_factory=lambda crater, area: FakeCount(),
+    )
+
+    zero = analyze_session(
+        prepared.state_path, client=FakeClient(), preview_cli_main=all_stage_cli
+    )
+    zero_candidates = zero.session_dir / "llm_zero" / "range_candidates.json"
+    zero_preview = zero.session_dir / "previews_zero" / "candidate_1" / "SID9_csfd.png"
+    assert zero_candidates.is_file()
+    assert zero_preview.is_file()
+
+    reverted = undo_last_step(zero.state_path)
+    few = analyze_session(
+        reverted.state_path, client=FewShotClient(), preview_cli_main=all_stage_cli
+    )
+    few_candidates = few.session_dir / "llm_few" / "range_candidates.json"
+    few_preview = few.session_dir / "previews_few" / "candidate_1" / "SID9_csfd.png"
+
+    assert json.loads(zero_candidates.read_text(encoding="utf-8"))["prompt_mode"] == "zero_shot"
+    assert zero_preview.is_file()
+    assert json.loads(few_candidates.read_text(encoding="utf-8"))["prompt_mode"] == "few_shot"
+    assert few_preview.is_file()
+
+    reverted_again = undo_last_step(few.state_path)
+    rerun_zero = analyze_session(
+        reverted_again.state_path,
+        client=SecondZeroShotClient(),
+        preview_cli_main=all_stage_cli,
+    )
+
+    zero_data = json.loads(zero_candidates.read_text(encoding="utf-8"))
+    assert zero_data["overall_observation"] == "zero 重跑测试"
+    assert (rerun_zero.session_dir / "previews_zero" / "candidate_1" / "SID9_csfd.png").is_file()
+    assert json.loads(few_candidates.read_text(encoding="utf-8"))["overall_observation"] == "few-shot 测试"
 
 
 def test_analyze_generates_three_unconfirmed_candidate_previews(tmp_path: Path) -> None:
@@ -177,7 +241,7 @@ def test_analyze_generates_three_unconfirmed_candidate_previews(tmp_path: Path) 
     )
 
     data = json.loads(
-        (analyzed.session_dir / "llm" / "range_candidates.json").read_text(encoding="utf-8")
+        (analyzed.session_dir / "llm_zero" / "range_candidates.json").read_text(encoding="utf-8")
     )
     assert analyzed.phase is SessionPhase.AWAITING_CONFIRMATION
     assert len(data["candidates"]) == 3
@@ -187,7 +251,7 @@ def test_analyze_generates_three_unconfirmed_candidate_previews(tmp_path: Path) 
         assert preview["age_ga"] == 0.376
         assert Path(preview["plot_path"]).is_file()
         assert Path(preview["result_json_path"]).is_file()
-        config = analyzed.session_dir / "previews" / f"candidate_{index}" / "SID9_dating.cs"
+        config = analyzed.session_dir / "previews_zero" / f"candidate_{index}" / "SID9_dating.cs"
         text = config.read_text(encoding="utf-8")
         assert text.count("-p ") == 2
         assert "name=plot 2" in text
@@ -203,7 +267,7 @@ def test_final_directory_age_is_created_only_after_confirmation(tmp_path: Path) 
         prepared.state_path, client=FakeClient(), preview_cli_main=all_stage_cli
     )
 
-    assert list((prepared.session_dir / "previews").rglob("*_age_result.json"))
+    assert list((prepared.session_dir / "previews_zero").rglob("*_age_result.json"))
     assert not (prepared.session_dir / "final").exists()
     confirmed = confirm_candidate(analyzed.state_path, 1)
     completed = complete_confirmed_session(confirmed.state_path, cli_main=all_stage_cli)
