@@ -1,4 +1,4 @@
-# 月球撞击坑智能定年系统 / Lunar Crater Intelligent Dating System
+# 月球撞击坑智能定年系统 / Agent-Based Lunar Crater Dating System
 
 本项目把撞击坑自动识别、人工叠加复核、Craterstats CSFD 定年和 DeepSeek 多模态拟合区间推荐整合为一个本机 Streamlit 应用。所有任务使用独立输出目录，用户原始 AREA、CRATER 和 TIFF 不会被修改。
 
